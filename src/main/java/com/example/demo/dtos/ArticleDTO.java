@@ -18,4 +18,15 @@ public class ArticleDTO {
     private Double price = null;
     private Boolean freeShipping = null;
     private Integer prestige = null;
+
+    public void DecreaceQuantity(Integer quantity){
+        this.quantity -= quantity;
+    }
+    public void IncreaceQuantity(Integer quantity){
+        this.quantity += quantity;
+    }
+
+    //public String getPrestigeString(){
+    //    return "*".repeat(this.prestige);
+    //}
 }

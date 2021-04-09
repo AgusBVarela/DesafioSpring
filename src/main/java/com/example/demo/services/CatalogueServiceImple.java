@@ -1,21 +1,17 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.ArticleDTO;
-import com.example.demo.dtos.ErrorDTO;
-import com.example.demo.dtos.ResponseDTO;
 import com.example.demo.dtos.TicketDTO;
 import com.example.demo.exceptions.InvalidFilterExceptions;
-import com.example.demo.exceptions.InvalidQuantityExceptions;
-import com.example.demo.exceptions.ManyFiltersExceptions;
-import com.example.demo.exceptions.ProductNotFoundExceptions;
+import com.example.demo.exceptions.InvalidQuantityException;
+import com.example.demo.exceptions.ManyFiltersException;
+import com.example.demo.exceptions.ProductNotFoundException;
 import com.example.demo.repositories.CatalogueRepository;
 import com.example.demo.sorters.Sort;
-import com.sun.net.httpserver.HttpsServer;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
+import com.example.demo.validations.CatalogueValidation;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -30,50 +26,40 @@ public class CatalogueServiceImple implements CatalogueService{
 
 
     @Override
-    public List<ArticleDTO> getArticles(Map<String, String> params) throws ManyFiltersExceptions, InvalidFilterExceptions {
-        if((params.size() == 3 && !params.containsKey("order")) || params.size() > 3) throw new ManyFiltersExceptions();
+    public List<ArticleDTO> getArticles(Map<String, String> filter) throws ManyFiltersException, InvalidFilterExceptions {
+        /*Encargado de devolver una lista con los articulos con las condiciones recibidas por parámetros:
+        filtrados según corresponda y/o en orden elegido.
+          Valida que los filtros sean válidos y de no ser así lanza una excepción. Delega la búsqueda de artículos
+          al repositorio para solictarlos a la base de datos.*/
 
-        this.ValidateParams(params);
-        List<ArticleDTO> result = catalogueRepository.getArticlesByFilter(params);
-        if(params.containsKey("order")) Sort.SortBy(params.get("order"), result);
+        if((filter.size() == 3 && !filter.containsKey("order")) || filter.size() > 3) throw new ManyFiltersException();
+
+        CatalogueValidation.ValidateParams(filter);
+        List<ArticleDTO> result = catalogueRepository.getArticlesByFilter(filter);
+        if(filter.containsKey("order")) Sort.SortBy(filter.get("order"), result);
 
         return result;
     }
 
     @Override
-    public TicketDTO buyArticles(TicketDTO buy) throws InvalidQuantityExceptions, ProductNotFoundExceptions {
+    public TicketDTO buyArticles(TicketDTO buy) throws InvalidQuantityException, ProductNotFoundException, IOException {
+        /*Encargado de delegar la compra de artículos al repositorio.*/
+
         return catalogueRepository.buyArticles(buy);
     }
 
-    //Todo alguno que no pertenexca a la lista
-    private void ValidateParams(Map<String, String> params) throws InvalidFilterExceptions {
-        if(params.containsKey("order")){
-            try{
-                int num = Integer.parseInt(params.get("order"));
-                if (num < 0 || num >3) throw new InvalidFilterExceptions("El orden debe ser entre 0 y 3.");
-            }
-            catch (Exception e){
-                throw new InvalidFilterExceptions("El order no es de valor numérico");
-            }
-        }
-        if(params.containsKey("freeShipping")){
-            try{
-                Boolean.parseBoolean(params.get("freeShipping"));
-            }
-            catch (Exception e){
-                throw new InvalidFilterExceptions("El freeShipping debe ser 'true' o 'false'.");
-            }
-        }
-        //ToDo: cambiar el prestigio a entero pa devolver en string
-        if(params.containsKey("prestige")){
-            try{
-                Integer.parseInt(params.get("prestige"));
-            }
-            catch (Exception e){
-                throw new InvalidFilterExceptions("El prestige debe ser un valor numerico.");
-            }
-        }
+    @Override
+    public TicketDTO buyCart() throws InvalidQuantityException, IOException, ProductNotFoundException {
+        /*Encargado de delegar la compra del carrito al repositorio.*/
+
+        return catalogueRepository.buyCart();
     }
 
+    @Override
+    public String addToCart(TicketDTO buy) throws InvalidQuantityException, ProductNotFoundException {
+        /*Le delega al repositorio almacenar el carrito con las posibles compras del usuario.
+        Devuelve el total acmumulado.*/
 
+        return catalogueRepository.addToCart(buy);
+    }
 }

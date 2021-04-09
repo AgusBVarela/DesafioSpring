@@ -1,8 +1,8 @@
 package com.example.demo.exceptions;
 
-public class ManyFiltersExceptions extends Exception {
+public class ManyFiltersException extends Exception {
 
-    public ManyFiltersExceptions() {
+    public ManyFiltersException() {
         super("Se ingresaron más filtros de los esperados");
     }
 }

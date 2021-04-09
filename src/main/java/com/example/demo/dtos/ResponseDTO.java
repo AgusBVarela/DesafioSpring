@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class ResponseDTO {
     private TicketDTO ticket;
-    private ErrorDTO statusCode;
+    private StatusDTO statusCode;
 }
